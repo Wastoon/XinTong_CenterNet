@@ -5,6 +5,7 @@ from __future__ import print_function
 import numpy as np
 import cv2
 from .ddd_utils import compute_box_3d, project_to_image, draw_box_3d
+import os
 
 class Debugger(object):
   def __init__(self, ipynb=False, theme='black', 
@@ -43,6 +44,10 @@ class Debugger(object):
         (255, 0, 0), (0, 0, 255)]
     elif num_classes == 80 or dataset == 'coco':
       self.names = coco_class_name
+
+    elif num_classes == 26 or dataset == 'XinTong':
+      self.names = XinTong_class_name
+
     elif num_classes == 20 or dataset == 'pascal':
       self.names = pascal_class_name
     elif dataset == 'gta':
@@ -212,10 +217,11 @@ class Debugger(object):
                                        points[i][j][1] * self.down_ratio),
                    3, (int(c[0]), int(c[1]), int(c[2])), -1)
 
-  def show_all_imgs(self, pause=False, time=0):
+  def show_all_imgs(self, pause=False , time=0):
     if not self.ipynb:
       for i, v in self.imgs.items():
         cv2.imshow('{}'.format(i), v)
+
       if cv2.waitKey(0 if pause else 1) == 27:
         import sys
         sys.exit(0)
@@ -235,6 +241,17 @@ class Debugger(object):
 
   def save_img(self, imgId='default', path='./cache/debug/'):
     cv2.imwrite(path + '{}.png'.format(imgId), self.imgs[imgId])
+
+  def save_person_only(self, image_name, pause=False, path='./cache/debug/'):
+      for i, v in self.imgs.items():
+        cv2.imshow('{}'.format(i), v)
+      key = cv2.waitKey(0 if pause else 1)
+      if key & 0xFF == ord("s"):
+        for i, v in self.imgs.items():
+          cv2.imwrite(path + "{}_{}.png".format(i, image_name), v)
+      if key == 27:
+        import sys
+        sys.exit(0)
     
   def save_all_imgs(self, path='./cache/debug/', prefix='', genID=False):
     if genID:
@@ -245,7 +262,10 @@ class Debugger(object):
       prefix=idx
       np.savetxt(path + '/id.txt', np.ones(1) * (idx + 1), fmt='%d')
     for i, v in self.imgs.items():
-      cv2.imwrite(path + '/{}{}.png'.format(prefix, i), v)
+      savepath = path
+      if not os.path.exists(savepath):
+          os.makedirs(savepath)
+      cv2.imwrite(savepath + '/{}{}.png'.format(prefix, i), v)
 
   def remove_side(self, img_id, img):
     if not (img_id in self.imgs):
@@ -455,6 +475,14 @@ coco_class_name = [
      'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase',
      'scissors', 'teddy bear', 'hair drier', 'toothbrush'
 ]
+
+XinTong_class_name = [
+    "towercrane", "crane", "crane_lifting", "pumper",
+    "pumper_stretch", "digger", "dozer", "roller", "forklift",
+    "piledriver", "ballgrader", "grab", "truck",
+    "insulatedarmcar", "hangings", "dustproofnet",
+    "reflectivefilm", "smoke", "fire", "tower",
+    "scaffold", "nest", "person", "car", "bus", "othercars"]
 
 color_list = np.array(
         [

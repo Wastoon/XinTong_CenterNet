@@ -7,6 +7,7 @@ import numpy as np
 from progress.bar import Bar
 import time
 import torch
+import os
 
 try:
   from external.nms import soft_nms
@@ -94,3 +95,16 @@ class CtdetDetector(BaseDetector):
         if bbox[4] > self.opt.vis_thresh:
           debugger.add_coco_bbox(bbox[:4], j - 1, bbox[4], img_id='ctdet')
     debugger.show_all_imgs(pause=self.pause)
+    #prefix = image_name.split('.')[0]
+    #path = os.path.dirname(self.opt.det_output_path) + '/img'
+    #debugger.save_all_imgs(path, prefix)
+
+  def save_results_only(self, debugger, image, results, image_name):
+    debugger.add_img(image, img_id='ctdet')
+    for j in range(1, self.num_classes + 1):
+      for bbox in results[j]:
+        if bbox[4] > self.opt.vis_thresh:
+          debugger.add_coco_bbox(bbox[:4], j - 1, bbox[4], img_id='ctdet')
+    prefix = image_name.split('.')[0]
+    path = os.path.dirname(self.opt.det_output_path) + '/img'
+    debugger.save_all_imgs(path, prefix)

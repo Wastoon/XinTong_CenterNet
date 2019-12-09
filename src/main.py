@@ -20,6 +20,7 @@ def main(opt):
   torch.manual_seed(opt.seed)
   torch.backends.cudnn.benchmark = not opt.not_cuda_benchmark and not opt.test
   Dataset = get_dataset(opt.dataset, opt.task)
+  #Dataset = get_dataset(opt.dataset)
   opt = opts().update_dataset_info_and_set_heads(opt, Dataset)
   print(opt)
 
@@ -42,7 +43,7 @@ def main(opt):
 
   print('Setting up data...')
   val_loader = torch.utils.data.DataLoader(
-      Dataset(opt, 'val'), 
+      Dataset(opt, 'train'),
       batch_size=1, 
       shuffle=False,
       num_workers=1,
@@ -56,7 +57,7 @@ def main(opt):
 
   train_loader = torch.utils.data.DataLoader(
       Dataset(opt, 'train'), 
-      batch_size=opt.batch_size, 
+      batch_size=opt.batch_size,
       shuffle=True,
       num_workers=opt.num_workers,
       pin_memory=True,

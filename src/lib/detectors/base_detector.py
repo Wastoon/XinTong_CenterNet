@@ -79,9 +79,16 @@ class BaseDetector(object):
   def show_results(self, debugger, image, results):
    raise NotImplementedError
 
+  def save_results_only(self, debugger, image, results, image_name):
+   raise NotImplementedError
+
+  #def save_person_only(self, debugger, image, results, image_name):
+   #raise NotImplementedError
+
   def run(self, image_or_path_or_tensor, meta=None):
     load_time, pre_time, net_time, dec_time, post_time = 0, 0, 0, 0, 0
     merge_time, tot_time = 0, 0
+    image_name = None
     debugger = Debugger(dataset=self.opt.dataset, ipynb=(self.opt.debug==3),
                         theme=self.opt.debugger_theme)
     start_time = time.time()
@@ -90,6 +97,8 @@ class BaseDetector(object):
       image = image_or_path_or_tensor
     elif type(image_or_path_or_tensor) == type (''): 
       image = cv2.imread(image_or_path_or_tensor)
+      import os
+      image_name = os.path.basename(image_or_path_or_tensor)
     else:
       image = image_or_path_or_tensor['image'][0].numpy()
       pre_processed_images = image_or_path_or_tensor
@@ -137,8 +146,14 @@ class BaseDetector(object):
     tot_time += end_time - start_time
 
     if self.opt.debug >= 1:
-      self.show_results(debugger, image, results)
-    
+       if image_name is not None:
+         self.show_results(debugger, image, results)
+        #self.save_person_only(debugger, image, results, image_name)
+
+    if self.opt.debug == 0:
+       if image_name is not None:
+         self.save_results_only(debugger, image, results, image_name)
+
     return {'results': results, 'tot': tot_time, 'load': load_time,
             'pre': pre_time, 'net': net_time, 'dec': dec_time,
-            'post': post_time, 'merge': merge_time}
+            'post': post_time, 'merge': merge_time, 'image_name': image_name}
